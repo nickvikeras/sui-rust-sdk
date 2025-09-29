@@ -4,7 +4,6 @@ use std::str::FromStr;
 
 use sui_sdk_types::Address;
 use sui_sdk_types::StructTag;
-use sui_sdk_types::TypeTag;
 
 use crate::client::v2::Client;
 use crate::client::v2::Result;
@@ -17,7 +16,7 @@ impl Client {
     ///
     /// # Arguments
     /// * `owner_address` - The address that owns the coins
-    /// * `coin_type` - The TypeTag of coins to select
+    /// * `coin_type` - The full StructTag of the coin type (e.g., 0x2::coin::Coin<0x2::sui::SUI>)
     /// * `amount` - The minimum total amount needed
     /// * `exclude` - Array of addresses to exclude from selection
     ///
@@ -29,14 +28,13 @@ impl Client {
     pub async fn select_coins(
         &self,
         owner_address: &Address,
-        coin_type: &TypeTag,
+        coin_type: &StructTag,
         amount: u64,
         exclude: &[Address],
     ) -> Result<Vec<Object>> {
-        let coin_struct = StructTag::coin(coin_type.clone());
         let list_request = ListOwnedObjectsRequest::default()
             .with_owner(owner_address)
-            .with_object_type(&coin_struct)
+            .with_object_type(coin_type)
             .with_page_size(500u32)
             .with_read_mask(FieldMask::from_paths([
                 "object_id",
@@ -73,7 +71,7 @@ impl Client {
     ///
     /// # Arguments
     /// * `owner_address` - The address that owns the coins
-    /// * `coin_type` - The TypeTag of coins to select
+    /// * `coin_type` - The full StructTag of the coin type (e.g., 0x2::coin::Coin<0x2::sui::SUI>)
     /// * `n` - The maximum number of coins to select
     /// * `exclude` - Array of addresses to exclude from selection
     ///
@@ -85,16 +83,15 @@ impl Client {
     pub async fn select_up_to_n_largest_coins(
         &self,
         owner_address: &Address,
-        coin_type: &TypeTag,
+        coin_type: &StructTag,
         n: usize,
         exclude: &[Address],
     ) -> Result<Vec<Object>> {
         let mut selected_coins = vec![];
 
-        let coin_struct = StructTag::coin(coin_type.clone());
         let list_request = ListOwnedObjectsRequest::default()
             .with_owner(owner_address)
-            .with_object_type(&coin_struct)
+            .with_object_type(coin_type)
             .with_page_size(500u32)
             .with_read_mask(FieldMask::from_paths([
                 "object_id",
